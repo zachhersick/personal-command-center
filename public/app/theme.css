@@ -1,0 +1,182 @@
+/* Design tokens. Dark is the default; light is opt-in from Settings.
+   The palette is complementary: sky blue is the interactive color (buttons,
+   links, focus, progress) and orange is the "now" color (the live block, the
+   current week, things waiting on you). Status colors stay separate from both. */
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font: "Geist", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Geist", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Cascadia Code", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Type scale: 12 / 13 / 14 / 16 / 20 / 24 / 32. */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 360ms;
+
+  --rail-width: 84px;
+}
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0e14;
+  --bg-glow-a: transparent;
+  --bg-glow-b: transparent;
+  --bg-elev: #111720;
+  --bg-sunken: #070a0f;
+  --surface: #0f141c;
+  --surface-2: #161d28;
+  --surface-3: #1e2733;
+  --surface-solid: #121822;
+  --line: #1e2733;
+  --line-strong: #2c3846;
+  --ink: #f2f5f8;
+  --ink-2: #c9d2dc;
+  --muted: #8a97a8;
+  --subtle: #6a7687;
+  --accent: #38bdf8;
+  --accent-2: #7dd3fc;
+  --accent-text: #38bdf8;
+  --accent-ink: #04121c;
+  --accent-soft: rgba(56, 189, 248, 0.14);
+  --hot: #ff6a1f;
+  --hot-text: #ff8a4c;
+  --hot-ink: #1a0800;
+  --hot-soft: rgba(255, 106, 31, 0.14);
+  --good: #4ade80;
+  --good-soft: rgba(74, 222, 128, 0.14);
+  --warn: #facc15;
+  --warn-soft: rgba(250, 204, 21, 0.13);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.35);
+  --shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  --glass: rgba(10, 14, 20, 0.88);
+  --scrim: rgba(4, 6, 10, 0.66);
+  --grain-opacity: 0;
+
+  /* Category hues, spread around the wheel so neighbours stay apart. */
+  --cat-study: #38bdf8;
+  --cat-build: #ff8a4c;
+  --cat-neetcode: #facc15;
+  --cat-applications: #4ade80;
+  --cat-interview: #2dd4bf;
+  --cat-behavioral: #f472b6;
+  --cat-review: #a3e635;
+  --cat-capstone: #fb7185;
+  --cat-paidwork: #94a3b8;
+  --cat-homework: #c4b5a0;
+  --cat-personal: #cbd5e1;
+  --block-class: rgba(148, 163, 184, 0.1);
+  --block-gym: rgba(74, 222, 128, 0.09);
+  --block-meal: rgba(250, 204, 21, 0.08);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f8fa;
+  --bg-glow-a: transparent;
+  --bg-glow-b: transparent;
+  --bg-elev: #ffffff;
+  --bg-sunken: #edf1f5;
+  --surface: #ffffff;
+  --surface-2: #eef2f6;
+  --surface-3: #e2e8ef;
+  --surface-solid: #ffffff;
+  --line: #e1e7ee;
+  --line-strong: #c8d1db;
+  --ink: #0b1220;
+  --ink-2: #2b3646;
+  --muted: #556274;
+  --subtle: #6f7b8b;
+  --accent: #0270ad;
+  --accent-2: #015a8c;
+  --accent-text: #0369a1;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(2, 132, 199, 0.1);
+  --hot: #f25a0f;
+  --hot-text: #c2410c;
+  --hot-ink: #1a0800;
+  --hot-soft: rgba(242, 90, 15, 0.1);
+  --good: #166534;
+  --good-soft: rgba(21, 128, 61, 0.1);
+  --warn: #854d0e;
+  --warn-soft: rgba(202, 138, 4, 0.12);
+  --danger: #b91c1c;
+  --danger-soft: rgba(220, 38, 38, 0.09);
+  --shadow-sm: 0 1px 2px rgba(11, 18, 32, 0.06);
+  --shadow: 0 8px 24px -14px rgba(11, 18, 32, 0.22);
+  --shadow-lg: 0 24px 60px -24px rgba(11, 18, 32, 0.3);
+  --glass: rgba(255, 255, 255, 0.92);
+  --scrim: rgba(11, 18, 32, 0.32);
+  --grain-opacity: 0;
+
+  --cat-study: #0369a1;
+  --cat-build: #c2410c;
+  --cat-neetcode: #a16207;
+  --cat-applications: #15803d;
+  --cat-interview: #0f766e;
+  --cat-behavioral: #be185d;
+  --cat-review: #4d7c0f;
+  --cat-capstone: #be123c;
+  --cat-paidwork: #475569;
+  --cat-homework: #78716c;
+  --cat-personal: #475569;
+  --block-class: rgba(71, 85, 105, 0.09);
+  --block-gym: rgba(21, 128, 61, 0.08);
+  --block-meal: rgba(161, 98, 7, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+    --dur-slow: 0ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

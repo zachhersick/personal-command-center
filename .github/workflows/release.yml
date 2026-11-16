@@ -1,0 +1,153 @@
+name: Release
+
+# Every merge to main builds Jarvis for Windows and macOS and publishes one
+# GitHub release. Installed apps find it with the Update button.
+#
+# The builds go straight onto a draft release rather than through workflow
+# artifacts: the installers are about 570 MB a release, and artifacts count
+# against the account's storage quota, which stopped releases when it filled.
+# The updater skips drafts, so nothing is offered until publish finishes.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Read-only unless a job says otherwise. The token that can publish releases
+# is handed only to the steps that call gh, never to npm ci, the tests or the
+# build, so a compromised package can't use it.
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  version:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: pick
+        run: |
+          base=$(node -p "require('./package.json').version")
+          echo "version=${base%.*}.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+      # A re-run keeps its run number, so it finds the draft it made before.
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v${{ steps.pick.outputs.version }}"
+          gh release view "$tag" >/dev/null 2>&1 || gh release create "$tag" \
+            --draft \
+            --target "${{ github.sha }}" \
+            --title "Jarvis ${{ steps.pick.outputs.version }}" \
+            --notes "Building…"
+
+  build-win:
+    permissions:
+      contents: write
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
+      - run: npm run build:win
+      - name: Upload to the draft release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ needs.version.outputs.version }}"
+          gh release upload "v$version" "dist/Jarvis-Setup-$version-x64.exe" --clobber
+
+  build-mac:
+    permissions:
+      contents: write
+    needs: version
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm version "${{ needs.version.outputs.version }}" --no-git-tag-version --allow-same-version
+      # Unsigned build: no Apple certificate, so skip code-signing discovery.
+      - run: npm run build:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Upload to the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ needs.version.outputs.version }}"
+          gh release upload "v$version" \
+            "dist/Jarvis-$version-universal-mac.zip" \
+            "dist/Jarvis-$version-universal-mac.dmg" \
+            --clobber
+
+  publish:
+    permissions:
+      contents: write
+    needs: [version, build-win, build-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Checksums and notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ needs.version.outputs.version }}"
+          gh release download "v$version" --dir assets \
+            --pattern "Jarvis-Setup-$version-x64.exe" \
+            --pattern "Jarvis-$version-universal-mac.zip" \
+            --pattern "Jarvis-$version-universal-mac.dmg"
+          test "$(ls assets | wc -l)" -eq 3
+          cd assets
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          cd ..
+          previous=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || true)
+          range="${previous:+$previous..}HEAD"
+          {
+            echo "## What's new"
+            git log --no-merges --pretty='- %s' "$range" | head -40
+          } > release-notes.md
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v${{ needs.version.outputs.version }}"
+          gh release upload "$tag" assets/SHA256SUMS.txt --clobber
+          gh release edit "$tag" --notes-file release-notes.md --draft=false --latest
+      - name: Keep the newest 10 releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --exclude-drafts --limit 100 --json tagName --jq '.[10:][].tagName' | while read -r tag; do
+            gh release delete "$tag" --yes --cleanup-tag
+          done

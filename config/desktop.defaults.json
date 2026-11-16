@@ -1,0 +1,72 @@
+{
+  "profile": {
+    "name": "Your workspace",
+    "location": "America/Los_Angeles"
+  },
+  "dashboard": {
+    "port": 4317
+  },
+  "workspace": {
+    "root": ".",
+    "primaryProject": ".",
+    "trackedRepos": [],
+    "projects": [],
+    "vscodeCommand": "code"
+  },
+  "planning": {
+    "careerSchedule": {
+      "reportedApplications": 50,
+      "earliestStartDate": "2027-05-26",
+      "offerTargetDate": "2027-05-01",
+      "minimumBaseSalary": null,
+      "targetBaseSalary": null
+    },
+    "dayWindow": {
+      "start": "09:00",
+      "end": "17:30"
+    }
+  },
+  "integrations": {
+    "career": {
+      "enabled": true,
+      "roadmapFiles": [],
+      "todoFiles": [
+        "data/todo.json",
+        "data/todo.md"
+      ]
+    },
+    "jobs": {
+      "enabled": false,
+      "spreadsheetId": "",
+      "databaseSheets": [],
+      "localResultsFiles": [
+        "data/job-board-results.local.json"
+      ],
+      "automationRoots": []
+    },
+    "googleCalendar": {
+      "enabled": true,
+      "contextFiles": []
+    },
+    "googleDrive": {
+      "enabled": true,
+      "contextFiles": []
+    },
+    "gmail": {
+      "enabled": true,
+      "contextFiles": []
+    },
+    "github": {
+      "enabled": false
+    },
+    "slack": {
+      "enabled": false
+    }
+  },
+  "agents": {
+    "maxConcurrent": 3,
+    "timeoutMinutes": 45,
+    "claudeCommand": "",
+    "codexCommand": ""
+  }
+}

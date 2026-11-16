@@ -1,0 +1,339 @@
+/* Focus mode: a full-screen personal desktop. Always dark, whatever the app
+   theme, so backgrounds and glass read the same. */
+.focus-root {
+  --glass-bg: rgba(12, 14, 22, 0.42);
+  --glass-line: rgba(255, 255, 255, 0.12);
+  --f-ink: #f4f6fb;
+  --f-muted: rgba(235, 240, 255, 0.66);
+  position: fixed;
+  inset: 0;
+  color: var(--f-ink);
+  color-scheme: dark;
+  overflow: hidden;
+  background: #04060c;
+  z-index: 50;
+}
+.focus-root .muted { color: var(--f-muted); }
+
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.focus-backdrop { position: absolute; inset: 0; }
+.focus-backdrop canvas,
+.focus-backdrop img,
+.focus-backdrop video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.focus-backdrop canvas { image-rendering: auto; }
+.focus-dim { position: absolute; inset: 0; background: #03040a; transition: opacity var(--dur-slow) var(--ease); }
+.focus-vignette { position: absolute; inset: 0; background: radial-gradient(120% 90% at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.55)); }
+.focus-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+/* ---------- setup / summary ---------- */
+.focus-setup { position: relative; z-index: 2; height: 100%; display: grid; place-items: center; padding: 24px; overflow-y: auto; }
+.focus-setup-card {
+  width: min(620px, 100%);
+  border-radius: var(--radius-xl);
+  padding: 30px;
+  display: grid;
+  gap: 18px;
+  animation: rise var(--dur-slow) var(--ease);
+}
+.focus-setup-card.center { justify-items: center; text-align: center; }
+.focus-setup-card h1 { font-size: 30px; letter-spacing: -0.01em; }
+.focus-setup-card .eyebrow { color: var(--f-muted); }
+.focus-task-list { display: grid; gap: 4px; max-height: 330px; overflow-y: auto; margin: 0 -6px; padding: 0 6px; }
+.focus-task-option {
+  --cat: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  text-align: left;
+  cursor: pointer;
+  color: var(--f-ink);
+  transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.focus-task-option:hover { background: rgba(255, 255, 255, 0.08); }
+.focus-task-option.is-active { border-color: color-mix(in srgb, var(--cat) 60%, transparent); background: color-mix(in srgb, var(--cat) 14%, rgba(255, 255, 255, 0.04)); }
+.focus-task-title { flex: 1; min-width: 0; font-weight: 580; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.focus-task-option .muted { font-size: 12px; white-space: nowrap; }
+.focus-setup-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.focus-root .seg { background: rgba(255, 255, 255, 0.06); border-color: var(--glass-line); }
+.focus-root .seg button { color: var(--f-muted); }
+.focus-root .seg button.is-active { background: rgba(255, 255, 255, 0.14); color: #fff; box-shadow: none; }
+.focus-root .chip { background: rgba(255, 255, 255, 0.05); border-color: var(--glass-line); color: var(--f-ink); }
+.focus-root .chip.is-active { background: color-mix(in srgb, var(--accent) 24%, transparent); border-color: var(--accent); }
+.focus-root .input { background: rgba(0, 0, 0, 0.3); border-color: var(--glass-line); color: #fff; }
+.focus-setup-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.focus-setup-foot .link { color: var(--f-muted); }
+.summary-badge { width: 64px; height: 64px; border-radius: var(--radius-xl); display: grid; place-items: center; background: var(--good); color: #052015; animation: pop-in var(--dur-slow) var(--ease); }
+@keyframes pop-in { from { transform: scale(0.9); opacity: 0; } }
+.summary-next { --cat: var(--accent); display: grid; gap: 2px; width: 100%; padding: 14px 16px; border-radius: var(--radius-lg); background: rgba(255, 255, 255, 0.05); border-left: 3px solid var(--cat); text-align: left; }
+
+/* ---------- active stage ---------- */
+.focus-stage { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+.focus-stage.has-panel { grid-template-columns: 380px 1fr; }
+.focus-stage.has-panel .focus-center,
+.focus-stage.has-panel .focus-dock { grid-column: 2; }
+.focus-top { position: relative; z-index: 6; grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: flex-start; gap: 16px; padding: 22px 26px 0; }
+.focus-clock { display: grid; justify-items: end; text-align: right; line-height: 1.15; text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5); }
+.focus-clock strong { font-family: var(--font-display); font-size: 30px; font-weight: 300; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.focus-clock span { font-size: 13px; color: var(--f-muted); }
+.focus-top-tools { display: flex; align-items: center; gap: 6px; padding: 6px; border-radius: var(--radius-lg); background: rgba(10, 12, 20, 0.3); backdrop-filter: blur(14px); border: 1px solid rgba(255, 255, 255, 0.08); }
+.focus-top-tools .icon-btn { color: var(--f-muted); }
+.focus-top-tools .icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+.focus-top-tools .icon-btn.is-on { color: #fff; background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.focus-stat { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; font-size: 12.5px; color: var(--f-muted); font-variant-numeric: tabular-nums; }
+.focus-agents { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border: 0; border-radius: var(--radius); background: transparent; color: var(--f-muted); font: inherit; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.focus-agents:hover, .focus-agents.is-on { color: #fff; background: rgba(255, 255, 255, 0.1); }
+.focus-agents.needs-you { color: var(--warn); }
+.focus-agents-short { display: none; font-variant-numeric: tabular-nums; }
+.focus-agent-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; max-height: 320px; overflow-y: auto; }
+.focus-agent-list li { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; padding: 8px 10px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.05); }
+.focus-agent-list li.status-needs-you { box-shadow: inset 3px 0 0 var(--warn); }
+.focus-agent-list strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.focus-agent-line { grid-column: 1 / -1; font-size: 12px; color: var(--f-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.focus-center { position: relative; z-index: 2; grid-column: 1; display: grid; place-content: center; justify-items: center; text-align: center; gap: 10px; padding: 0 32px; }
+.focus-eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: var(--radius-xs); background: rgba(10, 12, 20, 0.35); backdrop-filter: blur(10px); font-size: 12px; font-weight: 500; color: var(--f-muted); border: 1px solid rgba(255, 255, 255, 0.08); }
+.focus-title { max-width: 18em; font-size: clamp(22px, 2.6vw, 34px); font-weight: 560; letter-spacing: -0.01em; line-height: 1.2; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); text-wrap: balance; }
+.focus-timer {
+  font-family: var(--font-display);
+  font-size: clamp(96px, 15vw, 210px);
+  font-weight: 200;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 10px 60px rgba(0, 0, 0, 0.55);
+  transition: opacity var(--dur-slow) var(--ease), color var(--dur-slow) var(--ease);
+  margin: 6px 0 4px;
+}
+.focus-timer.small { font-size: 96px; }
+.focus-timer.is-paused { opacity: 0.55; }
+.focus-timer.is-over { color: #9ef0c0; }
+.focus-plus { font-size: 0.5em; vertical-align: 0.6em; margin-right: 0.05em; opacity: 0.8; }
+.focus-progress { width: min(420px, 70vw); height: 4px; border-radius: var(--radius-xs); background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.focus-progress span { display: block; height: 100%; border-radius: inherit; background: #fff; transition: width 1s linear; }
+.focus-sub { font-size: 14px; color: var(--f-muted); min-height: 21px; }
+.focus-controls { display: flex; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; justify-content: center; }
+.focus-ctl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  min-width: 52px;
+  padding: 0 18px;
+  border-radius: var(--radius-xs);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(14, 16, 26, 0.38);
+  backdrop-filter: blur(16px);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.focus-ctl:hover { background: rgba(255, 255, 255, 0.16); }
+.focus-ctl:first-child { width: 64px; height: 64px; padding: 0; }
+.focus-ctl-text { font-size: 14px; }
+.focus-ctl-primary { background: rgba(255, 255, 255, 0.92); color: #0b0d14; border-color: transparent; }
+.focus-ctl-primary:hover { background: #fff; }
+
+.focus-panel {
+  position: relative;
+  z-index: 3;
+  grid-column: 1;
+  grid-row: 2 / 4;
+  margin: 18px 0 22px 22px;
+  border-radius: var(--radius-xl);
+  padding: 20px;
+  overflow-y: auto;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+  animation: slide-in-left var(--dur-slow) var(--ease);
+  scrollbar-width: thin;
+}
+.focus-panel section { display: grid; gap: 8px; }
+.focus-panel h4 { color: var(--f-muted); }
+.focus-panel p { color: rgba(240, 244, 255, 0.85); font-size: 13.5px; }
+.focus-resource { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: var(--radius); background: rgba(255, 255, 255, 0.05); color: #fff; }
+.focus-resource:hover { background: rgba(255, 255, 255, 0.1); text-decoration: none; }
+.focus-resource span { display: grid; min-width: 0; }
+.focus-resource em { font-style: normal; font-size: 12px; color: var(--f-muted); }
+.focus-panel .audit-item { background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.08); }
+.focus-notes {
+  width: 100%;
+  min-height: 140px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff;
+  resize: vertical;
+  outline: none;
+  line-height: 1.55;
+}
+.focus-notes:focus { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.focus-next { --cat: var(--accent); display: flex; align-items: center; gap: 10px; font-size: 13px; padding: 4px 0; }
+.focus-next span:nth-child(2) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.focus-next em { font-style: normal; color: var(--f-muted); font-size: 12px; }
+
+.focus-dock { position: relative; z-index: 3; grid-column: 1; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 0 24px 24px; }
+.focus-dock-inner { border-radius: var(--radius-xl); padding: 10px 12px; min-width: min(560px, 100%); }
+/* A fixed width, not a minimum, so a long title truncates instead of
+   widening the dock and sliding the centred controls around. */
+.focus-dock-inner:has(> .spotify-dock) { width: min(680px, 100%); }
+.focus-leave { position: absolute; right: 24px; bottom: 30px; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px 0 6px; border-radius: var(--radius-xs); border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(10, 12, 20, 0.35); backdrop-filter: blur(12px); color: var(--f-muted); font-size: 12.5px; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
+.focus-leave:hover { color: #fff; }
+.focus-leave svg { width: 28px; height: 28px; transform: rotate(-90deg); }
+.focus-leave .track { fill: none; stroke: rgba(255, 255, 255, 0.15); stroke-width: 3; }
+.focus-leave .fill { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 94.25; }
+.focus-leave .kbd { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
+.focus-hold { position: absolute; inset: 0; z-index: 10; display: grid; place-content: center; justify-items: center; gap: 16px; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(4px); font-size: 15px; pointer-events: none; animation: fade var(--dur) var(--ease); }
+.focus-hold-ring { width: 96px; height: 96px; border-radius: 50%; background: conic-gradient(#fff calc(var(--p) * 360deg), rgba(255, 255, 255, 0.15) 0); mask: radial-gradient(circle, transparent 42px, #000 43px); }
+
+/* popovers */
+.focus-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  /* Stay on screen on a phone, where the anchor sits near the right edge. */
+  width: min(340px, calc(100vw - 24px));
+  padding: 14px;
+  border-radius: var(--radius-xl);
+  display: grid;
+  gap: 12px;
+  background: rgba(14, 16, 26, 0.82);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.8);
+  z-index: 20;
+  animation: pop var(--dur) var(--ease);
+}
+.focus-pop-head { display: flex; align-items: center; justify-content: space-between; }
+.focus-pop .seg { flex-wrap: wrap; }
+/* Opens upward from the dock at the bottom of the screen. */
+.focus-pop.is-up { top: auto; bottom: calc(100% + 12px); }
+.spotify-output-btn { display: inline-flex; align-items: center; gap: 6px; max-width: 150px; height: 30px; padding: 0 10px; border: 0; border-radius: var(--radius); background: transparent; color: var(--f-muted); font: inherit; font-size: 12px; cursor: pointer; }
+.spotify-output-btn span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spotify-output-btn:hover, .spotify-output-btn.is-on { color: #fff; background: rgba(255, 255, 255, 0.1); }
+.spotify-device-list { display: grid; gap: 6px; }
+.spotify-device { display: grid; gap: 2px; text-align: left; padding: 9px 12px; border: 1px solid transparent; border-radius: var(--radius); background: rgba(255, 255, 255, 0.05); color: #fff; font: inherit; cursor: pointer; }
+.spotify-device span { font-size: 12px; color: var(--f-muted); }
+.spotify-device:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+.spotify-device.is-active { border-color: #1ed760; cursor: default; }
+.spotify-device.is-active span { color: #1ed760; }
+.spotify-device:disabled:not(.is-active) { opacity: 0.5; cursor: not-allowed; }
+.scene-scroll { display: grid; gap: 12px; max-height: 320px; overflow-y: auto; }
+.scene-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.scene-group { display: grid; gap: 8px; }
+.scene-group-label { font-size: 12px; font-weight: 500; color: var(--f-muted); }
+.scene-note { margin: 0; font-size: 11.5px; line-height: 1.4; color: var(--f-muted); }
+.scene-swatch { position: relative; height: 70px; border-radius: var(--radius); border: 2px solid transparent; overflow: hidden; cursor: pointer; padding: 0; background: #111; display: grid; align-items: end; }
+.scene-swatch img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.scene-swatch span { position: relative; padding: 4px 7px; font-size: 11px; font-weight: 500; text-align: left; background: linear-gradient(0deg, rgba(0, 0, 0, 0.65), transparent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scene-swatch.is-active { border-color: #fff; }
+.scene-video { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(135deg, #1b2236, #0b0e18); }
+.focus-slider { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 10px; font-size: 12.5px; color: var(--f-muted); }
+.focus-pop .link { color: #7dd3fc; }
+
+/* range inputs */
+.focus-root input[type="range"],
+.spotify input[type="range"] { appearance: none; height: 4px; border-radius: var(--radius-xs); background: rgba(255, 255, 255, 0.2); outline: none; }
+.focus-root input[type="range"]::-webkit-slider-thumb,
+.spotify input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
+
+/* ---------- spotify (shared) ---------- */
+.spotify { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.spotify-art { position: relative; flex: none; width: 48px; height: 48px; border-radius: var(--radius); overflow: hidden; display: grid; place-items: center; background: var(--surface-2); color: #1ed760; box-shadow: var(--shadow-sm); }
+.spotify-art img { width: 100%; height: 100%; object-fit: cover; }
+.spotify-art-empty { color: var(--muted); }
+.spotify-meta { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.spotify-meta strong { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spotify-meta span { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spotify-meta .shimmer { width: 70%; }
+.spotify-progress { height: 3px; margin-top: 6px; border-radius: var(--radius-xs); background: var(--surface-3); overflow: hidden; }
+.spotify-progress span { display: block; height: 100%; background: #1ed760; transition: width 1s linear; }
+.spotify-controls { flex: none; display: flex; align-items: center; gap: 2px; }
+/* Volume and output sit in a fixed-width slot, so a missing volume control or
+   a long device name never shifts the playback buttons. */
+.spotify-extras { flex: none; width: 276px; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.spotify-controls .icon-btn { width: 30px; height: 30px; }
+.spotify-play { width: 36px; height: 36px; border-radius: 50%; border: 0; display: grid; place-items: center; background: var(--ink); color: var(--bg); cursor: pointer; transition: transform var(--dur-fast) var(--ease); }
+.spotify-play:active { transform: scale(0.97); }
+.spotify-volume { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.spotify-volume input { width: 90px; }
+
+.focus-root .spotify-art { background: rgba(255, 255, 255, 0.08); width: 52px; height: 52px; }
+.focus-root .spotify-meta span,
+.focus-root .spotify-volume,
+.focus-root .spotify-controls .icon-btn { color: var(--f-muted); }
+.focus-root .spotify-controls .icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+.focus-root .spotify-progress { background: rgba(255, 255, 255, 0.15); }
+.focus-root .spotify-play { background: #fff; color: #0b0d14; }
+
+/* Modal over focus keeps the dark glass look. */
+.focus-root ~ .toasts .toast,
+.modal-glass { background: rgba(16, 18, 28, 0.92); border-color: var(--glass-line); color: #f4f6fb; }
+
+@keyframes slide-in-left { from { transform: translateX(-32px); opacity: 0; } }
+
+@media (max-width: 1100px) {
+  .focus-stage.has-panel { grid-template-columns: 1fr; }
+  .focus-stage.has-panel .focus-center,
+  .focus-stage.has-panel .focus-dock { grid-column: 1; }
+  /* The panel floats over the stage here, so keep the task clear of it. */
+  .focus-stage.has-panel .focus-center,
+  .focus-stage.has-panel .focus-dock { padding-left: min(392px, 42vw); }
+  .focus-panel { position: absolute; left: 16px; right: auto; top: 76px; bottom: 100px; width: min(360px, calc(100vw - 32px)); margin: 0; }
+}
+@media (max-width: 720px) {
+  .focus-top { padding: 14px 14px 0; }
+  .focus-clock strong { font-size: 22px; }
+  .focus-dock { flex-direction: column; padding: 0 12px 14px; }
+  .focus-leave { position: static; }
+  .focus-dock-inner { min-width: 0; width: 100%; }
+  .spotify-volume { display: none; }
+  .spotify-extras { width: 36px; }
+  .focus-setup-card { padding: 22px; }
+  /* Anchored menus span the screen. The toolbar drops its blur so it stops
+     being the containing block for them (a filter creates one). */
+  .focus-top-tools { backdrop-filter: none; }
+  .focus-top-tools .menu-anchor { position: static; }
+  .focus-pop { left: 10px; right: auto; width: calc(100vw - 20px); top: calc(100% + 8px); }
+  /* The dock's output menu spans the dock instead of hanging off its button. */
+  .focus-dock-inner { position: relative; }
+  .focus-dock-inner .menu-anchor { position: static; }
+  .focus-pop.is-up { left: 0; right: 0; width: auto; top: auto; bottom: calc(100% + 10px); }
+  .spotify-output-btn span,
+  .focus-agents-long { display: none; }
+  .focus-agents-short { display: inline; }
+  .scene-grid { grid-template-columns: repeat(2, 1fr); }
+  .scene-scroll { max-height: 60vh; }
+}
+
+.scene-row { display: flex; align-items: center; gap: 8px; }
+.scene-dot { width: 30px; height: 30px; border-radius: var(--radius); border: 2px solid rgba(255, 255, 255, 0.12); cursor: pointer; padding: 0; transition: border-color var(--dur-fast) var(--ease); }
+.scene-dot:hover { border-color: rgba(255, 255, 255, 0.4); }
+.scene-dot.is-active { border-color: #fff; }
+.scene-row .muted { margin-left: 4px; }
+
+@media (max-width: 720px) {
+  .focus-top { padding-top: max(14px, env(safe-area-inset-top)); }
+  .focus-dock { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+  .focus-setup { padding-top: max(24px, env(safe-area-inset-top)); padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+}

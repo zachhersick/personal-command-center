@@ -1,0 +1,157 @@
+{
+  "profile": {
+    "operatorName": "You",
+    "location": "America/Los_Angeles",
+    "mission": "Ship good software and follow today's plan."
+  },
+  "dashboard": {
+    "port": 4317,
+    "openBrowserOnStart": true,
+    "voiceBriefingOnStart": true,
+    "voiceProvider": "edge",
+    "allowOpenAiBilling": false,
+    "voiceModel": "gpt-4o-mini-tts",
+    "voiceName": "en-GB-RyanNeural",
+    "voiceRate": "+18%",
+    "voicePitch": "-6Hz",
+    "wakeWords": [
+      "jarvis",
+      "hey jarvis"
+    ],
+    "refreshSeconds": 45,
+    "sessionUsage": {
+      "warningPercent": 80,
+      "codexCreditsStartPercent": 100,
+      "currentPercent": null
+    }
+  },
+  "workspace": {
+    "root": "..",
+    "primaryProject": ".",
+    "vscodeCommand": "code",
+    "trackedRepos": [
+      "."
+    ],
+    "projects": [
+      {
+        "id": "jarvis",
+        "displayName": "Jarvis",
+        "path": ".",
+        "slug": "your-github-name/jarvis",
+        "matchTerms": [
+          "jarvis"
+        ]
+      }
+    ]
+  },
+  "planning": {
+    "careerSchedule": {
+      "reportedApplications": 0,
+      "earliestStartDate": "2027-06-01",
+      "offerTargetDate": "2027-05-01",
+      "minimumBaseSalary": null,
+      "targetBaseSalary": null
+    },
+    "dayWindow": {
+      "start": "09:00",
+      "end": "17:30"
+    },
+    "dailyFocus": [
+      "Review calendar and commitments",
+      "Pick one shipping goal before opening Slack",
+      "Check job-board automation results",
+      "Clear GitHub PR/review blockers",
+      "Run one focused outreach or application pass"
+    ],
+    "defaultTimeBlocks": [
+      {
+        "label": "Deep Build",
+        "time": "09:00-11:30"
+      },
+      {
+        "label": "Comms and Planning",
+        "time": "11:30-12:00"
+      },
+      {
+        "label": "Jobs Pipeline",
+        "time": "15:30-16:15"
+      }
+    ]
+  },
+  "integrations": {
+    "github": {
+      "enabled": true,
+      "preferGhCli": true,
+      "username": "",
+      "sideProjects": [],
+      "discoverLimit": 20
+    },
+    "slack": {
+      "enabled": true,
+      "autoOpenOnLaunch": false,
+      "workspaceName": "",
+      "notifyChannel": "",
+      "channels": []
+    },
+    "jobs": {
+      "enabled": true,
+      "spreadsheetId": "",
+      "spreadsheetName": "",
+      "applyQueueSheet": "Apply Queue",
+      "databaseSheets": [
+        "In Person",
+        "Remote"
+      ],
+      "automationSearchTerms": [
+        "job",
+        "jobs",
+        "job board",
+        "job-board"
+      ],
+      "automationRoots": [
+        "$CODEX_HOME/automations",
+        "~/.codex/automations"
+      ],
+      "localResultsFiles": [
+        "data/job-board-results.local.json",
+        "data/job-board-results.json"
+      ]
+    },
+    "career": {
+      "enabled": true,
+      "roadmapFiles": [],
+      "todoFiles": [
+        "data/todo.json",
+        "data/todo.md"
+      ]
+    },
+    "googleDrive": {
+      "enabled": true,
+      "contextFiles": [],
+      "defaultSearchTerms": [
+        "career roadmap",
+        "job hunt",
+        "resume",
+        "applications"
+      ]
+    },
+    "googleCalendar": {
+      "enabled": true,
+      "contextFiles": []
+    },
+    "gmail": {
+      "enabled": true,
+      "contextFiles": [
+        "data/gmail-context.local.json",
+        "data/gmail-context.json"
+      ],
+      "excludeSenders": []
+    }
+  },
+  "agents": {
+    "maxConcurrent": 3,
+    "timeoutMinutes": 45,
+    "claudeCommand": "",
+    "codexCommand": ""
+  }
+}

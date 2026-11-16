@@ -1,0 +1,45 @@
+name: Cross-platform checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Pull requests, including ones from forks, only ever get a read-only token.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Opt in via the ENABLE_MACOS_CI repository variable when Mac checks are needed.
+        os: ${{ fromJSON(vars.ENABLE_MACOS_CI == 'true' && '["windows-latest","macos-latest"]' || '["windows-latest"]') }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Validate desktop entrypoint syntax
+        run: node --check desktop/main.mjs
+      - name: macOS startup script smoke check
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          test -x scripts/start-jarvis-mac.sh
+          sh -n scripts/start-jarvis-mac.sh
+      - name: Electron binary smoke check
+        run: npx electron --version
+      - name: macOS app packaging smoke check
+        if: runner.os == 'macOS'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npx electron-builder --mac dir --publish never
+          ls dist
+          test -d dist/mac-arm64/Jarvis.app || test -d dist/mac/Jarvis.app

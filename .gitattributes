@@ -1,0 +1,4 @@
+*.sh text eol=lf
+
+# Preserve PDF byte offsets across Windows and macOS checkouts.
+*.pdf binary

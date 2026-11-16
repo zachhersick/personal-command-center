@@ -1,0 +1,120 @@
+{
+  "name": "personal-jarvis-dashboard",
+  "version": "0.3.0",
+  "private": true,
+  "description": "A personal workspace for the roadmap plan, focus sessions and projects.",
+  "type": "module",
+  "main": "desktop/main.mjs",
+  "scripts": {
+    "start": "node server.js",
+    "desktop": "electron .",
+    "dev": "node server.js",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "startup:clean": "node scripts/clean-startup.mjs",
+    "startup:run": "node scripts/start-jarvis.mjs",
+    "build:win": "electron-builder --win nsis --x64 --publish never",
+    "build:dir": "electron-builder --win --x64 --dir",
+    "build:mac": "electron-builder --mac dmg zip --universal --publish never",
+    "build:icons": "node scripts/build-icons.mjs",
+    "build:web": "node scripts/build-web.mjs",
+    "cloud:dev": "node scripts/cloud-dev.mjs"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "electron": "44.10.1",
+    "electron-builder": "26.15.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "productName": "Jarvis",
+  "author": "Jarvis",
+  "license": "UNLICENSED",
+  "build": {
+    "appId": "com.zachhersick.jarvis",
+    "productName": "Jarvis",
+    "asar": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "desktop/assets"
+    },
+    "files": [
+      "desktop/main.mjs",
+      "desktop/updater.mjs",
+      "desktop/mac.mjs",
+      "desktop/windows.mjs",
+      "desktop/assets/trayTemplate@2x.png",
+      "desktop/assets/trayTemplate.png",
+      "desktop/user-data.mjs",
+      "desktop/plan-install.mjs",
+      "server.js",
+      "server/**/*.js",
+      "!server/cloud/**",
+      "public/**",
+      "config/desktop.defaults.json",
+      "data/plan/roadmap-plan.v1.json",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "desktop/assets/icon.ico",
+      "artifactName": "Jarvis-Setup-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Jarvis",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": false
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "desktop/assets/icon.png",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "artifactName": "Jarvis-${version}-${arch}-mac.${ext}"
+    },
+    "dmg": {
+      "title": "Jarvis ${version}",
+      "contents": [
+        {
+          "x": 140,
+          "y": 190
+        },
+        {
+          "x": 400,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.0.2",
+    "@preact/signals": "2.2.1",
+    "htm": "3.1.1",
+    "imapflow": "2.2.5",
+    "mailparser": "3.9.47",
+    "preact": "10.26.10"
+  },
+  "jarvisUpdates": {
+    "repo": "zachhersick/jarvis"
+  }
+}

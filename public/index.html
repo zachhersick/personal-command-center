@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Jarvis</title>
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0a0e14">
+  <link rel="icon" href="/jarvis-icon.png">
+  <!-- Home-screen app on iPhone -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Jarvis">
+  <link rel="stylesheet" href="/app/theme.css">
+  <link rel="stylesheet" href="/app/app.css">
+  <link rel="stylesheet" href="/app/focus.css">
+  <link rel="stylesheet" href="/app/agents.css">
+  <link rel="stylesheet" href="/app/jobs.css">
+  <link rel="stylesheet" href="/app/music.css">
+  <script>
+    // Apply the saved theme before first paint.
+    try {
+      const saved = localStorage.getItem("jarvis-theme");
+      if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+    } catch {}
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "preact": "/vendor/preact/dist/preact.module.js",
+        "preact/hooks": "/vendor/preact/hooks/dist/hooks.module.js",
+        "htm": "/vendor/htm/dist/htm.module.js",
+        "@preact/signals": "/vendor/@preact/signals/dist/signals.module.js",
+        "@preact/signals-core": "/vendor/@preact/signals-core/dist/signals-core.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <div class="boot" aria-live="polite"><div class="boot-mark"></div><span>Loading your roadmap…</span></div>
+  </div>
+  <script type="module" src="/app/main.js"></script>
+</body>
+</html>
